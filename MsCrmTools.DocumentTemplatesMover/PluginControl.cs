@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
@@ -120,38 +121,52 @@ namespace MsCrmTools.DocumentTemplatesMover
                         string name = template.GetAttributeValue<string>("name");
 
                         SendMessageToStatusBar(this, new StatusBarMessageEventArgs(current * 100 / total, "Processing template '" + name + "'..."));
-
-                        try
+                        if (template.GetAttributeValue<OptionSetValue>("documenttype").Value == 2)
                         {
-                            int? oldEtc = tManager.GetEntityTypeCode(Service, etc);
-                            int? newEtc = tManager.GetEntityTypeCode(targetService, etc);
-
-                            tManager.ReRouteEtcViaOpenXML(template, name, etc, oldEtc, newEtc);
-
-                            var templateToTransfer = new Entity(template.LogicalName);
-                            foreach (var attribute in template.Attributes)
+                            try
                             {
-                                templateToTransfer[attribute.Key] = attribute.Value;
-                            }
-                            templateToTransfer["associatedentitytypecode"] = newEtc;
+                                int? oldEtc = tManager.GetEntityTypeCode(Service, etc);
+                                int? newEtc = tManager.GetEntityTypeCode(targetService, etc);
 
-                            Guid existingId = tManager.TemplateExists(targetService, name);
-                            if (existingId != null && existingId != Guid.Empty)
+                                tManager.ReRouteEtcViaOpenXML(template, name, etc, oldEtc, newEtc);
+
+                                var templateToTransfer = new Entity(template.LogicalName);
+                                foreach (var attribute in template.Attributes)
+                                {
+                                    templateToTransfer[attribute.Key] = attribute.Value;
+                                }
+                                templateToTransfer["associatedentitytypecode"] = newEtc;
+
+                                Guid existingId = tManager.TemplateExists(targetService, name);
+                                if (existingId != null && existingId != Guid.Empty)
+                                {
+                                    templateToTransfer["documenttemplateid"] = existingId;
+
+                                    targetService.Update(templateToTransfer);
+                                }
+                                else
+                                {
+                                    targetService.Create(templateToTransfer);
+                                }
+
+                                Log(name, true);
+                            }
+                            catch (Exception error)
                             {
-                                templateToTransfer["documenttemplateid"] = existingId;
-
-                                targetService.Update(templateToTransfer);
+                                Log(name, false, error.Message);
                             }
-                            else
-                            {
-                                targetService.Create(templateToTransfer);
-                            }
-
-                            Log(name, true);
                         }
-                        catch (Exception error)
+                        else if(template.GetAttributeValue<OptionSetValue>("documenttype").Value == 1)
                         {
-                            Log(name, false, error.Message);
+                            try
+                            {
+                                ExcelTemplateManager magic = new ExcelTemplateManager(ConnectionDetail, AdditionalConnectionDetails.First());
+                                magic.Transfer(template, this, worker);
+                            }
+                            catch(Exception error)
+                            {
+                                Log(name, false, error.Message);
+                            }
                         }
                     }
                 };
@@ -226,7 +241,8 @@ namespace MsCrmTools.DocumentTemplatesMover
                     {
                         var item = new ListViewItem();
                         item.Tag = template;
-                        item.Text = template.GetAttributeValue<string>("name");
+                        int docType = template.GetAttributeValue<OptionSetValue>("documenttype").Value;
+                        item.Text = $"{template.GetAttributeValue<string>("name")} ({(docType == 1 ? "Excel" : "Word")})";
                         lvTemplates.Items.Add(item);
                     }
                 }

@@ -3,7 +3,9 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
+using NuGet;
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace MsCrmTools.DocumentTemplatesMover
         public List<Entity> GetTemplates(IOrganizationService service)
         {
             QueryExpression qe = new QueryExpression("documenttemplate") { ColumnSet = new ColumnSet("content", "name", "associatedentitytypecode", "documenttype", "clientdata") };
-            qe.Criteria.AddCondition("documenttype", ConditionOperator.Equal, 2); // only word docs
+            //qe.Criteria.AddCondition("documenttype", ConditionOperator.Equal, 2); // only word docs
             qe.Criteria.AddCondition("createdbyname", ConditionOperator.NotEqual, "SYSTEM");
 
             var results = service.RetrieveMultiple(qe);
