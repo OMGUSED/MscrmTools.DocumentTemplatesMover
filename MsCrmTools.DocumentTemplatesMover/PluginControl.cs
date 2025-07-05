@@ -121,52 +121,46 @@ namespace MsCrmTools.DocumentTemplatesMover
                         string name = template.GetAttributeValue<string>("name");
 
                         SendMessageToStatusBar(this, new StatusBarMessageEventArgs(current * 100 / total, "Processing template '" + name + "'..."));
-                        if (template.GetAttributeValue<OptionSetValue>("documenttype").Value == 2)
-                        {
-                            try
-                            {
-                                int? oldEtc = tManager.GetEntityTypeCode(Service, etc);
-                                int? newEtc = tManager.GetEntityTypeCode(targetService, etc);
 
+                        try
+                        {
+                            int? oldEtc = tManager.GetEntityTypeCode(Service, etc);
+                            int? newEtc = tManager.GetEntityTypeCode(targetService, etc);
+
+                            if (template.GetAttributeValue<OptionSetValue>("documenttype").Value == 2)
+                            {
                                 tManager.ReRouteEtcViaOpenXML(template, name, etc, oldEtc, newEtc);
-
-                                var templateToTransfer = new Entity(template.LogicalName);
-                                foreach (var attribute in template.Attributes)
-                                {
-                                    templateToTransfer[attribute.Key] = attribute.Value;
-                                }
-                                templateToTransfer["associatedentitytypecode"] = newEtc;
-
-                                Guid existingId = tManager.TemplateExists(targetService, name);
-                                if (existingId != null && existingId != Guid.Empty)
-                                {
-                                    templateToTransfer["documenttemplateid"] = existingId;
-
-                                    targetService.Update(templateToTransfer);
-                                }
-                                else
-                                {
-                                    targetService.Create(templateToTransfer);
-                                }
-
-                                Log(name, true);
                             }
-                            catch (Exception error)
-                            {
-                                Log(name, false, error.Message);
-                            }
-                        }
-                        else if(template.GetAttributeValue<OptionSetValue>("documenttype").Value == 1)
-                        {
-                            try
+                            else if (template.GetAttributeValue<OptionSetValue>("documenttype").Value == 1)
                             {
                                 ExcelTemplateManager magic = new ExcelTemplateManager(ConnectionDetail, AdditionalConnectionDetails.First());
-                                magic.Transfer(template, this, worker);
+                                magic.Transform(template, this, worker);
                             }
-                            catch(Exception error)
+
+                            var templateToTransfer = new Entity(template.LogicalName);
+                            foreach (var attribute in template.Attributes)
                             {
-                                Log(name, false, error.Message);
+                                templateToTransfer[attribute.Key] = attribute.Value;
                             }
+                            templateToTransfer["associatedentitytypecode"] = newEtc;
+
+                            Guid existingId = tManager.TemplateExists(targetService, name);
+                            if (existingId != null && existingId != Guid.Empty)
+                            {
+                                templateToTransfer["documenttemplateid"] = existingId;
+
+                                targetService.Update(templateToTransfer);
+                            }
+                            else
+                            {
+                                targetService.Create(templateToTransfer);
+                            }
+
+                            Log(name, true);
+                        }
+                        catch (Exception error)
+                        {
+                            Log(name, false, error.Message);
                         }
                     }
                 };

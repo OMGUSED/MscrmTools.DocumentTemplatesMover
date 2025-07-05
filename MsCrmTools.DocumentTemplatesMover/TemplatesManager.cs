@@ -53,7 +53,7 @@ namespace MsCrmTools.DocumentTemplatesMover
 
             string toFind = string.Format("{0}/{1}", etc, oldEtc);
             string replaceWith = string.Format("{0}/{1}", etc, newEtc);
-
+            
             using (var doc = WordprocessingDocument.Open(contentStream, true, new OpenSettings { AutoSave = true }))
             {
                 // crm keeps the etc in multiple places; parts here are the actual merge fields
@@ -83,6 +83,20 @@ namespace MsCrmTools.DocumentTemplatesMover
             }
 
             template["content"] = Convert.ToBase64String(contentStream.ToArray());
+        }
+
+        public Guid UploadExcelTemplate(IOrganizationService service, string name, Stream excelFile)
+        {
+            Guid result = Guid.Empty;
+            excelFile.Position = 0;
+            Entity excelTemplate = new Entity("documenttemplate");
+            excelTemplate["name"] = name;
+            excelTemplate["documenttype"] = 1;
+            byte[] file = new byte[excelFile.Length];
+            string s = excelFile.ReadToEnd();                       
+            excelTemplate["content"] = s;
+
+            return result;
         }
 
         public Guid TemplateExists(IOrganizationService service, string name)

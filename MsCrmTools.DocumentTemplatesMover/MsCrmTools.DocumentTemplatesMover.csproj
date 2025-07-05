@@ -271,7 +271,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>rem if $(ConfigurationName) == Debug mkdir Plugins
-"$(SolutionDir)packages\LibZ.Tool.1.2.0.0\tools\libz.exe" inject-dll --assembly "$(TargetPath)" --include $(TargetFileName) --include DocumentFormat.OpenXml.dll
 if $(ConfigurationName) == Debug move /Y $(TargetName).* Plugins</PostBuildEvent>
   </PropertyGroup>
   <ProjectExtensions>

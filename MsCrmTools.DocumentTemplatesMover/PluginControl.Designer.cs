@@ -93,7 +93,7 @@
             this.tsbTransfertTemplates.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbTransfertTemplates.Name = "tsbTransfertTemplates";
             this.tsbTransfertTemplates.Size = new System.Drawing.Size(194, 29);
-            this.tsbTransfertTemplates.Text = "Transfer template(s)";
+            this.tsbTransfertTemplates.Text = "Transform template(s)";
             this.tsbTransfertTemplates.Click += new System.EventHandler(this.TsbTransfertTemplatesClick);
             // 
             // grpSourceSolution

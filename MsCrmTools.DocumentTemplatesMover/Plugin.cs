@@ -11,7 +11,7 @@ namespace MsCrmTools.DocumentTemplatesMover
         ExportMetadata("PrimaryFontColor", "Black"),
         ExportMetadata("SecondaryFontColor", "Gray"),
         ExportMetadata("Name", "Document Templates Mover"),
-        ExportMetadata("Description", "Transfer Word templates from a source organization to a target organization")]
+        ExportMetadata("Description", "Transform Word templates from a source organization to a target organization")]
     public class Plugin : PluginBase
     {
         public override IXrmToolBoxPluginControl GetControl()
