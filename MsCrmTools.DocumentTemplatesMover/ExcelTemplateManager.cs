@@ -2,30 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO.Compression;
-using System.Windows.Forms;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using NuGet;
-using System.Text.RegularExpressions;
 using McTools.Xrm.Connection;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using XrmToolBox.Extensibility;
-using DocumentFormat.OpenXml.Office2010.CustomUI;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Crm.Sdk.Messages;
 using System.ServiceModel;
-using DocumentFormat.OpenXml.ExtendedProperties;
-using DocumentFormat.OpenXml.Wordprocessing;
-using System.Web.Services.Description;
-using System.Xml.Linq;
 using Microsoft.Xrm.Tooling.Connector;
 using Microsoft.Xrm.Sdk.Metadata;
-using Microsoft.Xrm.Sdk.Query;
 
 namespace MsCrmTools.DocumentTemplatesMover
 {
@@ -154,9 +140,17 @@ namespace MsCrmTools.DocumentTemplatesMover
                 string relatedEntityDisplayInfo = relatedEntity.Substring(relatedEntity.IndexOf("("));  
                 string lookupDisplayName = relatedEntity.Substring(relatedEntity.IndexOf("(") + 1);
                 lookupDisplayName = lookupDisplayName.Substring(0, lookupDisplayName.IndexOf(")"));
-                
+
                 //Get relationship metadata
-                LookupAttributeMetadata referencingAttribute = (LookupAttributeMetadata)lookupAttributes.Single(o => o.DisplayName.UserLocalizedLabel.Label == lookupDisplayName);
+                LookupAttributeMetadata referencingAttribute = null;
+                try
+                {
+                    referencingAttribute = (LookupAttributeMetadata)lookupAttributes.Single(o => o.DisplayName.UserLocalizedLabel.Label == lookupDisplayName);
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception($"Could not find lookup \"{lookupDisplayName}\"! It may have been renamed or deleted");
+                }
                 //string relatedEntityLogicalName = lookupAttributes.Single(o => o.DisplayName.UserLocalizedLabel.Label == relatedEntityDisplayInfo);
                 OneToManyRelationshipMetadata relationShip = metadata.ManyToOneRelationships.First(o => o.ReferencedEntity == referencingAttribute.Targets.FirstOrDefault());
                 List<string> columnsInRelationshipToFetch = new List<string>();
